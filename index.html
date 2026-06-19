@@ -1,0 +1,754 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مستكشف الفضاء والمجرات | محمد ماجد الفريجي</title>
+    
+    <!-- Tailwind CSS للتصميم والواجهات المستقبلية -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- خطوط عربية حديثة وملائمة للعلم والتكنولوجيا -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;750;950&family=Orbitron:wght@400;750;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #020617;
+            overflow-x: hidden;
+        }
+        .font-space {
+            font-family: 'Orbitron', sans-serif;
+        }
+        /* تأثير التوهج السديمي الكوني */
+        .nebula-glow {
+            box-shadow: 0 0 50px rgba(124, 58, 237, 0.15);
+        }
+        .nebula-cyan {
+            box-shadow: 0 0 50px rgba(6, 182, 212, 0.15);
+        }
+        /* حركات دوران الكواكب حول نفسها */
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spin-planet {
+            animation: spin-slow 20s infinite linear;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col relative select-none">
+
+    <!-- خلفية النيازك والنجوم اللامعة التفاعلية -->
+    <canvas id="cosmic-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+    <!-- الهيدر الكوني المميز -->
+    <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 relative">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-500 p-2.5 rounded-2xl shadow-lg shadow-indigo-500/20">
+                    <span class="text-2xl">🚀</span>
+                </div>
+                <div>
+                    <h1 class="text-lg font-black tracking-tight text-white flex items-center gap-2">
+                        مستكشف الفضاء والمجرات التفاعلي
+                        <span class="text-[10px] bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 px-2.5 py-0.5 rounded-full font-space font-normal">NASA API</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">إشراف وتطوير المهندس محمد ماجد الفريجي</p>
+                </div>
+            </div>
+
+            <!-- أزرار تبديل الأقسام والتبويبات -->
+            <div class="flex bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+                <button id="btn-tab-apod" onclick="switchTab('apod')" class="px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 bg-indigo-600 text-white shadow-md">
+                    🖼️ صورة ناسا اليومية
+                </button>
+                <button id="btn-tab-atlas" onclick="switchTab('atlas')" class="px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 text-slate-400 hover:text-white">
+                    🪐 أطلس الكواكب
+                </button>
+                <button id="btn-tab-gravity" onclick="switchTab('gravity')" class="px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 text-slate-400 hover:text-white">
+                    ⚖️ حاسبة الوزن الكوني
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- إشعار التنبيه والخطأ الذكي -->
+    <div id="toast" class="hidden fixed bottom-5 left-5 z-50 flex items-center gap-3 px-5 py-4 rounded-2xl border border-indigo-500/30 bg-slate-950/95 shadow-2xl max-w-sm animate-bounce">
+        <span class="text-indigo-400">☄️</span>
+        <p id="toast-text" class="text-xs md:text-sm font-semibold text-slate-200"></p>
+    </div>
+
+    <!-- المحتوى الرئيسي للمستكشف -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:py-8 relative z-10">
+
+        <!-- ============================================ -->
+        <!-- تبويب 1: صورة اليوم الفلكية من ناسا (NASA APOD) -->
+        <!-- ============================================ -->
+        <section id="tab-apod-content" class="space-y-8 animate-fade-in">
+            <!-- الفلترة بالتاريخ والمحرك -->
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 backdrop-blur-md">
+                <div class="space-y-1 text-right">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span>🌌</span> صورة اليوم الفلكية (APOD)
+                    </h2>
+                    <p class="text-xs text-slate-400">بث حي ومباشر يتم جلب تفاصيله يومياً من تليسكوبات وكالة ناسا</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <span class="text-xs text-slate-300 hidden sm:inline">اختر تاريخاً قديماً للاستكشاف:</span>
+                    <input id="apod-date-picker" onchange="loadCustomApodDate()" type="date" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-indigo-400 text-center flex-grow md:flex-grow-0">
+                </div>
+            </div>
+
+            <!-- عرض الصورة والتفاصيل العلمية المترجمة -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- لوحة الصورة/الفيديو الكونية -->
+                <div class="lg:col-span-7 bg-slate-900/20 border border-slate-800/80 rounded-3xl p-4 shadow-xl backdrop-blur-sm nebula-glow flex flex-col items-center justify-center min-h-[350px] relative overflow-hidden">
+                    <!-- مؤشر التحميل الكوني (Loading) -->
+                    <div id="apod-loader" class="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center z-20 gap-3">
+                        <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p class="text-xs text-indigo-300 animate-pulse tracking-widest font-space">CONNECTING TO NASA DEEP SPACE NETWORK...</p>
+                    </div>
+
+                    <!-- عرض الصورة أو الفيديو -->
+                    <div id="apod-media-container" class="w-full h-full min-h-[300px] flex items-center justify-center rounded-2xl overflow-hidden relative">
+                        <img id="apod-image" src="" alt="صورة اليوم الكونية" class="max-h-[500px] w-full object-cover rounded-2xl shadow-2xl hidden transition-all duration-700 hover:scale-105">
+                        <iframe id="apod-video" class="w-full h-[400px] rounded-2xl hidden" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- اللوحة الجانبية للتفاصيل العلمية والموضوع الكوني -->
+                <div class="lg:col-span-5 bg-slate-900/40 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl flex flex-col justify-between backdrop-blur-sm">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                            <span id="apod-date-tag" class="text-xs font-space text-cyan-400 bg-cyan-400/5 border border-cyan-400/20 px-3 py-1 rounded-full">2026-06-19</span>
+                            <span class="text-xs text-indigo-400 font-bold">مصنف رسمي من ناسا</span>
+                        </div>
+                        <h3 id="apod-title" class="text-lg md:text-xl font-bold text-white leading-relaxed">جاري جلب تفاصيل السديم الكوني...</h3>
+                        <p id="apod-explanation" class="text-xs md:text-sm leading-relaxed text-slate-300 max-h-[300px] overflow-y-auto pr-2">
+                            تحتوي هذه المساحة على التفسير العلمي المفصل المترجم للصورة الملتقطة من التليسكوبات الفضائية العميقة التابعة للوكالة الدولية ناسا.
+                        </p>
+                    </div>
+
+                    <!-- التوقيع الفاخر -->
+                    <div class="pt-6 border-t border-slate-800/60 text-xs text-slate-500 flex items-center justify-between">
+                        <span>حقوق المنصة والبرمجة محفوظة:</span>
+                        <span class="font-bold text-slate-300 hover:text-indigo-400 transition-colors">محمد ماجد الفريجي®</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ============================================ -->
+        <!-- تبويب 2: أطلس ومقارن كواكب المجموعة الشمسية -->
+        <!-- ============================================ -->
+        <section id="tab-atlas-content" class="hidden space-y-8 animate-fade-in">
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 text-right backdrop-blur-md">
+                <h2 class="text-xl font-bold text-white mb-1">🪐 أطلس الكواكب ومحاكي الأحجام البصري</h2>
+                <p class="text-xs text-slate-400">انقر على أي كوكب بالأسفل لعرض تفاصيله ومقارنته المباشرة بحجم الأرض</p>
+            </div>
+
+            <!-- قائمة كواكب المجموعة الشمسية التفاعلية -->
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+                <!-- عطارد -->
+                <button onclick="selectPlanet('mercury')" id="p-mercury" class="planet-tab-btn flex flex-col items-center justify-center p-4 rounded-2xl border bg-slate-900/30 border-slate-800 hover:border-slate-700 transition-all duration-300 gap-2">
+                    <span class="text-3xl filter drop-shadow-[0_0_10px_rgba(156,163,175,0.3)]">🌑</span>
+                    <span class="text-xs font-bold text-slate-300">عطارد</span>
+                </button>
+                <!-- الزهرة -->
+                <button onclick="selectPlanet('venus')" id="p-venus" class="planet-tab-btn flex flex-col items-center justify-center p-4 rounded-2xl border bg-slate-900/30 border-slate-800 hover:border-slate-700 transition-all duration-300 gap-2">
+                    <span class="text-3xl filter drop-shadow-[0_0_10px_rgba(245,158,11,0.3)]">🌕</span>
+                    <span class="text-xs font-bold text-slate-300">الزهرة</span>
+                </button>
+                <!-- الأرض -->
+                <button onclick="selectPlanet('earth')" id="p-earth" class="planet-tab-btn flex flex-col items-center justify-center p-4 rounded-2xl border border-indigo-500 bg-indigo-500/10 text-indigo-400 font-bold gap-2">
+                    <span class="text-3xl filter drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">🌍</span>
+                    <span class="text-xs font-bold">الأرض</span>
+                </button>
+                <!-- المريخ -->
+                <button onclick="selectPlanet('mars')" id="p-mars" class="planet-tab-btn flex flex-col items-center justify-center p-4 rounded-2xl border bg-slate-900/30 border-slate-800 hover:border-slate-700 transition-all duration-300 gap-2">
+                    <span class="text-3xl filter drop-shadow-[0_0_10px_rgba(239,68,68,0.4)]">🔴</span>
+                    <span class="text-xs font-bold text-slate-300">المريخ</span>
+                </button>
+                <!-- المشتري -->
+                <button onclick="selectPlanet('jupiter')" id="p-jupiter" class="planet-tab-btn flex flex-col items-center justify-center p-4 rounded-2xl border bg-slate-900/30 border-slate-800 hover:border-slate-700 transition-all duration-300 gap-2">
+                    <span class="text-3xl filter drop-shadow-[0_0_10px_rgba(245,158,11,0.3)]">🟤</span>
+                    <span class="text-xs font-bold text-slate-300">المشتري</span>
+                </button>
+                <!-- زحل -->
+                <button onclick="selectPlanet('saturn')" id="p-saturn" class="planet-tab-btn flex flex-col items-center justify-center p-4 rounded-2xl border bg-slate-900/30 border-slate-800 hover:border-slate-700 transition-all duration-300 gap-2">
+                    <span class="text-3xl filter drop-shadow-[0_0_10px_rgba(217,119,6,0.3)]">🪐</span>
+                    <span class="text-xs font-bold text-slate-300">زحل</span>
+                </button>
+                <!-- أورانوس -->
+                <button onclick="selectPlanet('uranus')" id="p-uranus" class="planet-tab-btn flex flex-col items-center justify-center p-4 rounded-2xl border bg-slate-900/30 border-slate-800 hover:border-slate-700 transition-all duration-300 gap-2">
+                    <span class="text-3xl filter drop-shadow-[0_0_10px_rgba(6,182,212,0.4)]">🔵</span>
+                    <span class="text-xs font-bold text-slate-300">أورانوس</span>
+                </button>
+                <!-- نبتون -->
+                <button onclick="selectPlanet('neptune')" id="p-neptune" class="planet-tab-btn flex flex-col items-center justify-center p-4 rounded-2xl border bg-slate-900/30 border-slate-800 hover:border-slate-700 transition-all duration-300 gap-2">
+                    <span class="text-3xl filter drop-shadow-[0_0_10px_rgba(29,78,216,0.4)]">🌀</span>
+                    <span class="text-xs font-bold text-slate-300">نبتون</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <!-- عرض الكوكب المختار ومقارنة الحجم الدائري البصري -->
+                <div class="lg:col-span-5 bg-slate-900/30 border border-slate-800 rounded-3xl p-6 md:p-8 text-center space-y-6 backdrop-blur-sm nebula-cyan">
+                    <h3 class="text-sm font-bold tracking-widest text-cyan-400 uppercase font-space">VISUAL SIZE COMPARISON</h3>
+                    
+                    <!-- لوحة المحاكاة البصرية لأحجام الكواكب -->
+                    <div class="h-64 border border-slate-800 rounded-2xl relative bg-slate-950/80 flex items-center justify-center overflow-hidden">
+                        <!-- تمثيل كوكب الأرض الثابت للمقارنة -->
+                        <div class="absolute left-1/4 flex flex-col items-center justify-center space-y-2">
+                            <div class="w-16 h-16 rounded-full bg-blue-600 border border-blue-400 shadow-lg shadow-blue-500/20 spin-planet"></div>
+                            <span class="text-[10px] text-blue-400">كوكب الأرض (ثابت)</span>
+                        </div>
+
+                        <!-- تمثيل الكوكب المختار المتغير الحجم والنوع -->
+                        <div class="absolute right-1/4 flex flex-col items-center justify-center space-y-2">
+                            <div id="planet-visual-scale" class="w-16 h-16 rounded-full bg-orange-600 border border-orange-400 shadow-lg shadow-orange-500/20 transition-all duration-700 spin-planet"></div>
+                            <span id="planet-visual-label" class="text-[10px] text-orange-400">الكوكب المقارن</span>
+                        </div>
+
+                        <!-- خط وهمي للمقارنة بالوسط -->
+                        <div class="absolute left-1/2 h-4/5 w-[1px] bg-slate-800"></div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <span class="text-xs text-slate-400">النسبة والتناسب:</span>
+                        <p id="planet-comparison-text" class="text-sm font-bold text-white">حجم الكوكب المختار يساوي حجم الأرض تماماً.</p>
+                    </div>
+                </div>
+
+                <!-- جدول الخواص الفلكية للكوكب المختار -->
+                <div class="lg:col-span-7 bg-slate-900/30 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 backdrop-blur-sm">
+                    <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+                        <span id="planet-info-emoji" class="text-3xl">🌍</span>
+                        <div>
+                            <h3 id="planet-info-name" class="text-lg md:text-xl font-bold text-white">الأرض</h3>
+                            <p id="planet-info-tagline" class="text-xs text-indigo-400 font-space font-semibold uppercase">PLANET EARTH DETAIL</p>
+                        </div>
+                    </div>
+
+                    <!-- بطاقات المعلومات الفلكية الفريدة -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-right">
+                        <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                            <span class="block text-[10px] text-slate-400 mb-1">القطر الفعلي</span>
+                            <span id="p-prop-diameter" class="text-xs md:text-sm font-bold text-slate-200">12,742 كم</span>
+                        </div>
+                        <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                            <span class="block text-[10px] text-slate-400 mb-1">الجاذبية السطحية</span>
+                            <span id="p-prop-gravity" class="text-xs md:text-sm font-bold text-slate-200">9.81 م/ث²</span>
+                        </div>
+                        <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                            <span class="block text-[10px] text-slate-400 mb-1">بعده عن الشمس</span>
+                            <span id="p-prop-distance" class="text-xs md:text-sm font-bold text-slate-200">149.6 مليون كم</span>
+                        </div>
+                        <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                            <span class="block text-[10px] text-slate-400 mb-1">متوسط درجة الحرارة</span>
+                            <span id="p-prop-temp" class="text-xs md:text-sm font-bold text-slate-200">15 درجة مئوية</span>
+                        </div>
+                        <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                            <span class="block text-[10px] text-slate-400 mb-1">عدد الأقمار التابعة</span>
+                            <span id="p-prop-moons" class="text-xs md:text-sm font-bold text-slate-200">قمر واحد</span>
+                        </div>
+                        <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                            <span class="block text-[10px] text-slate-400 mb-1">سرعة الدوران بالمدار</span>
+                            <span id="p-prop-speed" class="text-xs md:text-sm font-bold text-slate-200">29.78 كم/ثانية</span>
+                        </div>
+                    </div>
+
+                    <!-- حقيقة علمية مميزة ومبهرة -->
+                    <div class="bg-indigo-500/5 border border-indigo-500/20 p-4 rounded-2xl text-xs md:text-sm text-indigo-300 leading-relaxed">
+                        <span class="block font-bold mb-1">💡 حقيقة علمية مذهلة عن الكوكب:</span>
+                        <p id="planet-info-fact">كوكب الأرض هو الكوكب الوحيد المعروف في الكون الذي يحتوي على ماء سائل على سطحه ويدعم الحياة البشرية والبيولوجية المتنوعة.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ============================================ -->
+        <!-- تبويب 3: حاسبة وميزان الجاذبية الكوني (Cosmic Gravity) -->
+        <!-- ============================================ -->
+        <section id="tab-gravity-content" class="hidden space-y-8 animate-fade-in">
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 backdrop-blur-md">
+                <div class="space-y-1 text-right">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span>⚖️</span> حاسبة ميزان الجاذبية الكوني والقفز العالي
+                    </h2>
+                    <p class="text-xs text-slate-400">ادخل وزنك على كوكب الأرض لرؤية الفروق الشاسعة بالوزن والقفز فوق الكواكب الأخرى</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <span class="text-xs text-slate-300 hidden sm:inline">وزنك الحالي على الأرض (كجم):</span>
+                    <input id="input-earth-weight" type="number" value="70" oninput="calculateCosmicWeights()" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-indigo-400 text-center flex-grow md:flex-grow-0 font-bold text-lg font-space w-32">
+                </div>
+            </div>
+
+            <!-- شبكة مقارنة الأوزان الكونية الفورية -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- القمر -->
+                <div class="bg-slate-900/30 border border-slate-800 rounded-3xl p-6 text-center space-y-4 backdrop-blur-sm relative overflow-hidden">
+                    <span class="text-4xl block filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">🌘</span>
+                    <h3 class="text-base font-bold text-white">الـقـمـر</h3>
+                    <div class="space-y-1">
+                        <span class="text-[10px] text-slate-400">الوزن التقريبي</span>
+                        <p id="weight-moon" class="text-2xl font-black text-indigo-400 font-space">11.6 كجم</p>
+                    مرحى! يمكنك القفز أعلى بـ 6 مرات من الأرض.
+                    </div>
+                </div>
+
+                <!-- المريخ -->
+                <div class="bg-slate-900/30 border border-slate-800 rounded-3xl p-6 text-center space-y-4 backdrop-blur-sm relative overflow-hidden">
+                    <span class="text-4xl block filter drop-shadow-[0_0_8px_rgba(239,68,68,0.2)]">🔴</span>
+                    <h3 class="text-base font-bold text-white">الـمـريـخ</h3>
+                    <div class="space-y-1">
+                        <span class="text-[10px] text-slate-400">الوزن التقريبي</span>
+                        <p id="weight-mars" class="text-2xl font-black text-red-400 font-space">26.3 كجم</p>
+                    يمكنك القفز بـ 2.6 ضعف من الأرض.
+                    </div>
+                </div>
+
+                <!-- المشتري -->
+                <div class="bg-slate-900/30 border border-slate-800 rounded-3xl p-6 text-center space-y-4 backdrop-blur-sm relative overflow-hidden">
+                    <span class="text-4xl block filter drop-shadow-[0_0_8px_rgba(245,158,11,0.2)]">🟤</span>
+                    <h3 class="text-base font-bold text-white">الـمـشـتـري</h3>
+                    <div class="space-y-1">
+                        <span class="text-[10px] text-slate-400">الوزن التقريبي</span>
+                        <p id="weight-jupiter" class="text-2xl font-black text-amber-400 font-space">177.1 كجم</p>
+                    ستجد صعوبة بالغة في القفز! الجاذبية مدمرة.
+                    </div>
+                </div>
+
+                <!-- الشمس -->
+                <div class="bg-slate-900/30 border border-slate-800 rounded-3xl p-6 text-center space-y-4 backdrop-blur-sm relative overflow-hidden">
+                    <span class="text-4xl block filter drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]">☀️</span>
+                    <h3 class="text-base font-bold text-white">الـشـمـس</h3>
+                    <div class="space-y-1">
+                        <span class="text-[10px] text-slate-400">الوزن التقريبي</span>
+                        <p id="weight-sun" class="text-2xl font-black text-yellow-400 font-space">1,890 كجم</p>
+                    الجاذبية تسحق كل شيء! مستحيل القفز نهائياً.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- الفوتر مع الإمضاء الملكي الفاخر -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500 relative z-10">
+        <p class="mb-2">تطوير وبرمجة كافة الأنظمة الفلكية والمحاكاة والميزان الفضائي</p>
+        <div class="flex items-center justify-center gap-1 font-semibold text-slate-400">
+            <span>المهندس محمد ماجد الفريجي</span>
+            <span class="text-cyan-500 font-bold">®</span>
+            <span>&copy; 2026</span>
+        </div>
+    </footer>
+
+
+    <!-- منطق البرمجة والتفاعل الكوني المتقدم (Pure Vanilla JS) -->
+    <script>
+        // تفاصيل أطلس الكواكب ومقارنتها البصرية بحجم الأرض (القطر الفعلي للأرض 1)
+        const PLANETS_DATA = {
+            mercury: {
+                name: 'عطارد',
+                emoji: '🌑',
+                tagline: 'أقرب الكواكب للشمس وأسرعها دوراناً',
+                diameter: '4,879 كم',
+                gravity: '3.7 م/ث²',
+                distance: '57.9 مليون كم',
+                temp: '167 درجة مئوية',
+                moons: 'لا يوجد',
+                speed: '47.36 كم/ثانية',
+                scale: 0.38, // أصغر بكثير من الأرض
+                fact: 'بسبب قربه الشديد من الشمس، تبلغ درجة حرارة سطحه في النهار ما يكفي لصهر الرصاص، بينما يتجمد في الليل ليصل إلى 180- تحت الصفر!'
+            },
+            venus: {
+                name: 'الزهرة',
+                emoji: '🌕',
+                tagline: 'توأم الأرض الملتهب والمحاط بالغيوم الحمضية',
+                diameter: '12,104 كم',
+                gravity: '8.87 م/ث²',
+                distance: '108.2 مليون كم',
+                temp: '464 درجة مئوية',
+                moons: 'لا يوجد',
+                speed: '35.02 كم/ثانية',
+                scale: 0.95, // قريب جداً من حجم الأرض
+                fact: 'يعتبر الكوكب الأكثر سخونة في المجموعة الشمسية بأكملها بسبب الغلاف الجوي الكثيف الذي يحبس الحرارة كصوبة زجاجية عملاقة.'
+            },
+            earth: {
+                name: 'الأرض',
+                emoji: '🌍',
+                tagline: 'واحة الحياة الزرقاء والفريدة في الفضاء',
+                diameter: '12,742 كم',
+                gravity: '9.81 م/ث²',
+                distance: '149.6 مليون كم',
+                temp: '15 درجة مئوية',
+                moons: 'قمر واحد',
+                speed: '29.78 كم/ثانية',
+                scale: 1.0, // المعيار
+                fact: 'الماء يغطي أكثر من 70% من سطح الأرض، وهو الكوكب الوحيد المسجل علمياً الذي يحتوي على أوكسجين وحياة مستقرة حتى الآن.'
+            },
+            mars: {
+                name: 'المريخ',
+                emoji: '🔴',
+                tagline: 'الكوكب الأحمر والهدف القادم للبشرية',
+                diameter: '6,779 كم',
+                gravity: '3.71 م/ث²',
+                distance: '227.9 مليون كم',
+                temp: '62- درجة مئوية',
+                moons: 'قمران (فوبوس وديموس)',
+                speed: '24.07 كم/ثانية',
+                scale: 0.53, // نصف حجم الأرض تقريباً
+                fact: 'يحتوي المريخ على جبل "أوليمبوس"، وهو أكبر بركان خامد في المجموعة الشمسية بارتفاع يعادل 3 أضعاف قمة جبل إيفيرست!'
+            },
+            jupiter: {
+                name: 'المشتري',
+                emoji: '🟤',
+                tagline: 'عملاق الغاز الإعصاري وحامي كواكب الداخل',
+                diameter: '139,820 كم',
+                gravity: '24.79 م/ث²',
+                distance: '778.5 مليون كم',
+                temp: '108- درجة مئوية',
+                moons: '95 قمراً مؤكداً',
+                speed: '13.07 كم/ثانية',
+                scale: 2.2, // الحجم تم تصغيره برمجياً ليلائم شاشة العرض ولكنه عملاق مقارنة بالأرض
+                fact: 'يحتوي المشتري على "البقعة الحمراء العظيمة"، وهي عاصفة إعصارية عملاقة تدور منذ أكثر من 300 عام وحجمها يتسع لكوكب الأرض كاملاً!'
+            },
+            saturn: {
+                name: 'زحل',
+                emoji: '🪐',
+                tagline: 'جوهرة كواكب المجموعة الشمسية وحلقاتها المذهلة',
+                diameter: '116,460 كم',
+                gravity: '10.44 م/ث²',
+                distance: '1.4 مليار كم',
+                temp: '139- درجة مئوية',
+                moons: '146 قمراً مؤكداً',
+                speed: '9.68 كم/ثانية',
+                scale: 1.9,
+                fact: 'حلقات زحل الفاتنة مكونة بالكامل من بلايين قطع الجليد والصخور والغبار الفضائي التي تدور بانتظام حول كتلته الضخمة.'
+            },
+            uranus: {
+                name: 'أورانوس',
+                emoji: '🔵',
+                tagline: 'العملاق الجليدي ذو المحور المائل والغريب',
+                diameter: '50,724 كم',
+                gravity: '8.69 م/ث²',
+                distance: '2.9 مليار كم',
+                temp: '197- درجة مئوية',
+                moons: '28 قمراً تتابعاً',
+                speed: '6.80 كم/ثانية',
+                scale: 1.4,
+                fact: 'أورانوس يدور على جانبه بزاوية ميلان غريبة جداً تبلغ 98 درجة، مما يجعل ليله ونهاره يمتد لأكثر من 42 سنة مستمرة لكل قطب!'
+            },
+            neptune: {
+                name: 'نبتون',
+                emoji: '🌀',
+                tagline: 'الكوكب الأزرق الداكن وعاصفة الرياح المجنونة',
+                diameter: '49,244 كم',
+                gravity: '11.15 م/ث²',
+                distance: '4.5 مليار كم',
+                temp: '201- درجة مئوية',
+                moons: '16 قمراً مؤكداً',
+                speed: '5.43 كم/ثانية',
+                scale: 1.35,
+                fact: 'تهب على سطح نبتون أسرع رياح مسجلة في كواكب الفضاء قاطبة، حيث تصل سرعتها لقرابة 2100 كم في الساعة، وهي أسرع من الصوت!'
+            }
+        };
+
+        // دالة التبديل بين التبويبات الكونية
+        function switchTab(tabId) {
+            const tabs = ['apod', 'atlas', 'gravity'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}-content`).classList.add('hidden');
+                document.getElementById(`btn-tab-${t}`).className = "px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 text-slate-400 hover:text-white";
+            });
+
+            document.getElementById(`tab-${tabId}-content`).classList.remove('hidden');
+            document.getElementById(`btn-tab-${tabId}`).className = "px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 bg-indigo-600 text-white shadow-md";
+
+            if (tabId === 'atlas') {
+                selectPlanet('earth'); // القيمة الافتراضية
+            } else if (tabId === 'gravity') {
+                calculateCosmicWeights();
+            }
+        }
+
+        // ============================================
+        // استدعاء واجهة ناسا (NASA APOD API) مع ميزة التراجع والتكامل المتقدم
+        // ============================================
+        async function fetchNasaAPOD(dateStr = '') {
+            const loader = document.getElementById('apod-loader');
+            const imgEl = document.getElementById('apod-image');
+            const videoEl = document.getElementById('apod-video');
+            
+            loader.classList.remove('hidden');
+            imgEl.classList.add('hidden');
+            videoEl.classList.add('hidden');
+
+            const apiKey = 'DEMO_KEY'; // واجهة ناسا المفتوحة المعتمدة عالمياً للاستكشاف التجريبي
+            let url = `https://api.nasa.gov/planetary/apod?api_key=${apiKey}`;
+            if (dateStr) {
+                url += `&date=${dateStr}`;
+            }
+
+            // تنفيذ جلب البيانات مع تطبيق exponential backoff الآمن كحماية قصوى ضد الفشل
+            let delay = 1000;
+            let success = false;
+            let data = null;
+
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('NASA API Request Failed');
+                    data = await response.json();
+                    success = true;
+                    break;
+                } catch (err) {
+                    if (i === 4) {
+                        console.warn("تجاوز الحد الأقصى للمحاولات أو عطل بالشبكة. تشغيل البيانات البديلة الفاخرة.");
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                    }
+                }
+            }
+
+            // في حال نجاح الاتصال بناسا أو الانتقال للتأمين الاحتياطي الفاخر
+            if (success && data) {
+                renderApodData(data);
+            } else {
+                // بيانات فلكية احتياطية ساحرة فائقة الجودة لضمان عمل الواجهة
+                renderApodData({
+                    title: "سديم عين القط الرائع في الفضاء السحيق (Cat's Eye Nebula)",
+                    explanation: "تم التقاط هذه الصورة الفضائية الرائعة لتلسكوب هابل الفضائي لسديم عين القط، وهو سديم كوكبي مذهل يقع على بعد ثلاثة آلاف سنة ضوئية منا في كوكبة التنين، ويظهر حلقات غازية غاية في التعقيد والجمال الكوني البديع.",
+                    url: "https://images.unsplash.com/photo-1543722530-d2c3201371e7?auto=format&fit=crop&q=80&w=1200",
+                    date: dateStr || new Date().toISOString().split('T')[0],
+                    media_type: "image"
+                });
+                showToast("تم تطبيق الصورة الكونية الفاخرة كنسخة بديلة لحين استجابة NASA.");
+            }
+            
+            loader.classList.add('hidden');
+        }
+
+        // عرض تفاصيل الصورة الكونية من ناسا بالواجهة
+        function renderApodData(data) {
+            document.getElementById('apod-title').innerText = data.title;
+            document.getElementById('apod-explanation').innerText = data.explanation;
+            document.getElementById('apod-date-tag').innerText = data.date;
+
+            const imgEl = document.getElementById('apod-image');
+            const videoEl = document.getElementById('apod-video');
+
+            if (data.media_type === 'image') {
+                imgEl.src = data.url;
+                imgEl.classList.remove('hidden');
+            } else if (data.media_type === 'video') {
+                videoEl.src = data.url;
+                videoEl.classList.remove('hidden');
+            }
+        }
+
+        // البحث بصورة يوم مخصص من التاريخ المختار
+        function loadCustomApodDate() {
+            const dateVal = document.getElementById('apod-date-picker').value;
+            if (dateVal) {
+                fetchNasaAPOD(dateVal);
+            }
+        }
+
+        // ============================================
+        // أطلس الكواكب ومقارنة الأحجام البصرية
+        // ============================================
+        function selectPlanet(planetId) {
+            const planet = PLANETS_DATA[planetId];
+            if (!planet) return;
+
+            // تمييز التبويب النشط
+            document.querySelectorAll('.planet-tab-btn').forEach(btn => {
+                btn.className = "planet-tab-btn flex flex-col items-center justify-center p-4 rounded-2xl border bg-slate-900/30 border-slate-800 hover:border-slate-700 transition-all duration-300 gap-2 text-slate-300";
+            });
+
+            const activeBtn = document.getElementById(`p-${planetId}`);
+            if (activeBtn) {
+                activeBtn.className = "planet-tab-btn flex flex-col items-center justify-center p-4 rounded-2xl border border-indigo-500 bg-indigo-500/10 text-indigo-400 font-bold gap-2";
+            }
+
+            // تحديث لوحة المعلومات
+            document.getElementById('planet-info-emoji').innerText = planet.emoji;
+            document.getElementById('planet-info-name').innerText = planet.name;
+            document.getElementById('planet-info-tagline').innerText = planet.tagline;
+            document.getElementById('planet-info-fact').innerText = planet.fact;
+
+            document.getElementById('p-prop-diameter').innerText = planet.diameter;
+            document.getElementById('p-prop-gravity').innerText = planet.gravity;
+            document.getElementById('p-prop-distance').innerText = planet.distance;
+            document.getElementById('p-prop-temp').innerText = planet.temp;
+            document.getElementById('p-prop-moons').innerText = planet.moons;
+            document.getElementById('p-prop-speed').innerText = planet.speed;
+
+            // تحديث المقارن البصري الهندسي للكوكب المختار مقارنة بالأرض
+            const visualScale = document.getElementById('planet-visual-scale');
+            const visualLabel = document.getElementById('planet-visual-label');
+            const compText = document.getElementById('planet-comparison-text');
+
+            visualLabel.innerText = `${planet.name} (${planet.emoji})`;
+
+            // ضبط حجم الكوكب بالنسبة والتناسب الفعلي برمجياً
+            const baseSize = 64; // حجم الأرض الثابت بالبكسل
+            const targetSize = baseSize * planet.scale;
+            visualScale.style.width = `${targetSize}px`;
+            visualScale.style.height = `${targetSize}px`;
+
+            // تغيير الخلفية الجمالية للكوكب بالمحاكي
+            if (planetId === 'mercury') visualScale.className = "rounded-full bg-slate-500 border border-slate-400 shadow-lg shadow-slate-500/30 spin-planet";
+            else if (planetId === 'venus') visualScale.className = "rounded-full bg-yellow-600 border border-yellow-400 shadow-lg shadow-yellow-500/30 spin-planet";
+            else if (planetId === 'earth') visualScale.className = "rounded-full bg-blue-600 border border-blue-400 shadow-lg shadow-blue-500/30 spin-planet";
+            else if (planetId === 'mars') visualScale.className = "rounded-full bg-red-600 border border-red-400 shadow-lg shadow-red-500/30 spin-planet";
+            else if (planetId === 'jupiter') visualScale.className = "rounded-full bg-amber-700 border border-amber-500 shadow-lg shadow-amber-500/30 spin-planet";
+            else if (planetId === 'saturn') visualScale.className = "rounded-full bg-orange-500 border border-orange-400 shadow-lg shadow-orange-500/30 spin-planet";
+            else if (planetId === 'uranus') visualScale.className = "rounded-full bg-cyan-600 border border-cyan-400 shadow-lg shadow-cyan-500/30 spin-planet";
+            else if (planetId === 'neptune') visualScale.className = "rounded-full bg-blue-800 border border-blue-600 shadow-lg shadow-blue-800/30 spin-planet";
+
+            // صياغة جملة المقارنة البصرية
+            if (planet.scale > 1) {
+                compText.innerText = `حجم كوكب ${planet.name} يعادل تقريباً ${planet.scale} أضعاف حجم كوكب الأرض!`;
+            } else if (planet.scale < 1) {
+                compText.innerText = `حجم كوكب ${planet.name} يعادل تقريباً ${(planet.scale * 100).toFixed(0)}% من حجم كوكب الأرض المعتاد.`;
+            } else {
+                compText.innerText = `حجم كوكب ${planet.name} مساوي تماماً لحجم كوكب الأرض.`;
+            }
+        }
+
+        // ============================================
+        // حاسبة وميزان الجاذبية الفوري
+        // ============================================
+        function calculateCosmicWeights() {
+            const earthWeight = parseFloat(document.getElementById('input-earth-weight').value);
+            if (isNaN(earthWeight) || earthWeight <= 0) return;
+
+            // الجاذبية النسبية مقارنة بالأرض
+            const ratios = {
+                moon: 0.166,
+                mars: 0.377,
+                jupiter: 2.528,
+                sun: 27.01
+            };
+
+            document.getElementById('weight-moon').innerText = `${(earthWeight * ratios.moon).toFixed(1)} كجم`;
+            document.getElementById('weight-mars').innerText = `${(earthWeight * ratios.mars).toFixed(1)} كجم`;
+            document.getElementById('weight-jupiter').innerText = `${(earthWeight * ratios.jupiter).toFixed(1)} كجم`;
+            document.getElementById('weight-sun').innerText = `${(earthWeight * ratios.sun).toFixed(0)} كجم`;
+        }
+
+        // إظهار التنبيه والإشعارات الكونية
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 5000);
+        }
+
+        // ============================================
+        // محرك خلفية غبار النجوم والنيازك اللامعة (Cosmic Canvas Engine)
+        // ============================================
+        function initCosmicCanvas() {
+            const canvas = document.getElementById('cosmic-canvas');
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+            let meteors = [];
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            // النجوم الثابتة واللامعة
+            class Star {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.5;
+                    this.twinkleSpeed = Math.random() * 0.02 + 0.005;
+                    this.opacity = Math.random();
+                }
+                update() {
+                    this.opacity += this.twinkleSpeed;
+                    if (this.opacity > 1 || this.opacity < 0) {
+                        this.twinkleSpeed = -this.twinkleSpeed;
+                    }
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, this.opacity)})`;
+                    ctx.fill();
+                }
+            }
+
+            // الشهب والنيازك الساقطة
+            class Meteor {
+                constructor() {
+                    this.reset();
+                }
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * -200;
+                    this.length = Math.random() * 80 + 20;
+                    this.speed = Math.random() * 8 + 4;
+                    this.width = Math.random() * 2 + 0.5;
+                    this.opacity = Math.random() * 0.6 + 0.4;
+                }
+                update() {
+                    this.x -= this.speed * 0.5;
+                    this.y += this.speed;
+                    if (this.y > canvas.height || this.x < 0) {
+                        this.reset();
+                    }
+                }
+                draw() {
+                    ctx.beginPath();
+                    const grad = ctx.createLinearGradient(this.x, this.y, this.x + this.length * 0.5, this.y - this.length, 0);
+                    grad.addColorStop(0, `rgba(139, 92, 246, ${this.opacity})`);
+                    grad.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.strokeStyle = grad;
+                    ctx.lineWidth = this.width;
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x + this.length * 0.5, this.y - this.length);
+                    ctx.stroke();
+                }
+            }
+
+            // توليد النجوم والشهب
+            for (let i = 0; i < 150; i++) stars.push(new Star());
+            for (let i = 0; i < 5; i++) meteors.push(new Meteor());
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                stars.forEach(s => {
+                    s.update();
+                    s.draw();
+                });
+                meteors.forEach(m => {
+                    m.update();
+                    m.draw();
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // بدء تشغيل البرنامج
+        initCosmicCanvas();
+        fetchNasaAPOD(); // جلب صورة ناسا الفورية بالتأسيس الأول
+    </script>
+</body>
+</html>
